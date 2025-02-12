@@ -1,0 +1,320 @@
+openapi: 3.1.0
+info:
+  title: FastAPI
+  version: 0.1.0
+paths:
+  /agents:
+    post:
+      summary: Create Agent
+      description: |-
+        Creates an Agent, this is a required endpoint.
+
+        You may ignore the websites and files fields and parameters
+        if you're not attempting the bonus assignment.
+      operationId: create_agent_agents_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Body_create_agent_agents_post"
+        required: true
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Create Agent Agents Post
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /agents/{agent_id}:
+    get:
+      summary: Get Agent
+      description: Retrieves an Agent, this is a required endpoint.
+      operationId: get_agent_agents__agent_id__get
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agent Id
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentDB"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    delete:
+      summary: Delete Agent
+      description: Deletes an Agent, this is a required endpoint.
+      operationId: delete_agent_agents__agent_id__delete
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agent Id
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /agents/{agent_id}/websites:
+    put:
+      summary: Update Agent Websites
+      description: >-
+        Extract text from websites specified, populating the agent's website
+        list,
+
+        this is part of the bonus assignment.
+      operationId: update_agent_websites_agents__agent_id__websites_put
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agent Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              title: Websites
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /agents/{agent_id}/files:
+    put:
+      summary: Update Agent Files
+      description: |-
+        Extracts text and images using OCR from the files uploaded,
+        populating the agent's file list, this is part of the bonus
+        assignment.
+      operationId: update_agent_files_agents__agent_id__files_put
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agent Id
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: >-
+                #/components/schemas/Body_update_agent_files_agents__agent_id__files_put
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /agents/{agent_id}/queries:
+    post:
+      summary: Send Message
+      description: >-
+        Sends a user prompt to the Research Agent and returns the research
+        conducted, this
+
+        is a required endpoint
+      operationId: send_message_agents__agent_id__queries_post
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agent Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Message"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Send Message Agents  Agent Id  Queries Post
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+components:
+  schemas:
+    AgentDB:
+      properties:
+        _id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        files:
+          items:
+            $ref: "#/components/schemas/File"
+          type: array
+          title: Files
+          default: []
+        websites:
+          items:
+            $ref: "#/components/schemas/File"
+          type: array
+          title: Websites
+          default: []
+        messages:
+          items:
+            type: string
+          type: array
+          title: Messages
+          default: []
+      type: object
+      required:
+        - name
+      title: AgentDB
+      description: |-
+        Creates a new Agent
+
+        Attributes
+            id (int | None): ID of the Agent
+            name (str): Name of the Agent
+            files (list[File]): Files to access
+            websites (list[File]): Websites crawled
+    Body_create_agent_agents_post:
+      properties:
+        agent_post:
+          type: string
+          contentMediaType: application/json
+          contentSchema: {}
+          title: Agent Post
+        files:
+          items:
+            type: string
+            format: binary
+          type: array
+          title: Files
+      type: object
+      required:
+        - agent_post
+        - files
+      title: Body_create_agent_agents_post
+    Body_update_agent_files_agents__agent_id__files_put:
+      properties:
+        files:
+          items:
+            type: string
+            format: binary
+          type: array
+          title: Files
+      type: object
+      required:
+        - files
+      title: Body_update_agent_files_agents__agent_id__files_put
+    File:
+      properties:
+        name:
+          type: string
+          title: Name
+        text:
+          type: string
+          title: Text
+        tokens:
+          type: integer
+          title: Tokens
+          default: 0
+      type: object
+      required:
+        - name
+        - text
+      title: File
+      description: |-
+        Files uploaded to Agent
+
+        Attributes
+            name (str): File name
+            text (str): Extracted text
+            tokens (int): Tokens utilised by the text
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    Message:
+      properties:
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+        - message
+      title: Message
+      description: |-
+        User message
+
+        Attributes:
+            message (str): User inputs
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
