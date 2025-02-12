@@ -1,3 +1,5 @@
+from typing import List
+
 from beanie import Document
 
 from app.schemas.file import File
@@ -7,6 +9,9 @@ from app.schemas.website import Website
 
 class Agent(Document):
     name: str
-    files: list[File]
-    websites: list[Website]
-    messages: list[Message]
+    files: List[File] = []
+    websites: List[Website] = []
+    messages: List[Message] = []
+
+    class Settings:
+        name = "agents"

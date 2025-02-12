@@ -1,8 +1,11 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.models.agent_create import AgentCreate
+from app.services import agent_service
 
+load_dotenv()
 app = FastAPI()
 
 app.add_middleware(
@@ -16,7 +19,7 @@ app.add_middleware(
 
 @app.post("/agents")
 async def create_agent(agent: AgentCreate):
-    return {"message": "Hello World"}
+    return await agent_service.create_agent(agent)
 
 
 @app.get("/agents/{agent_id}")
