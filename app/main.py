@@ -1,8 +1,12 @@
+import os
+
+from beanie import init_beanie
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.models.agent_create import AgentCreate
+from app.schemas.agent_create import AgentCreate
 from app.services import agent_service
 
 load_dotenv()
@@ -17,6 +21,18 @@ app.add_middleware(
 )
 
 
+async def init_db():
+    client = AsyncIOMotorClient(os.getenv("MONGO_URI"))
+    await init_beanie(
+        client.get_default_database(),
+        document_models=[
+            "app.models.agent",
+            "app.models.file",
+            "app.models.website",
+        ],
+    )
+
+
 @app.post("/agents")
 async def create_agent(agent: AgentCreate):
     return await agent_service.create_agent(agent)
@@ -24,12 +40,12 @@ async def create_agent(agent: AgentCreate):
 
 @app.get("/agents/{agent_id}")
 async def get_agent(agent_id: str):
-    return {"message": "Hello World"}
+    return await agent_service.get_agent(agent_id)
 
 
 @app.delete("/agents/{agent_id}")
 async def delete_agent(agent_id: str):
-    return {"message": "Hello World"}
+    return await agent_service.delete_agent(agent_id)
 
 
 @app.put("/agents/{agent_id}/websites")
