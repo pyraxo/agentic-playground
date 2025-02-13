@@ -2,9 +2,9 @@ from typing import List
 
 from beanie import Document
 
-from app.schemas.file import File
+from app.models.file import File
+from app.models.website import Website
 from app.schemas.message import Message
-from app.schemas.website import Website
 
 
 class Agent(Document):
