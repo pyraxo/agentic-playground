@@ -1,12 +1,13 @@
 import os
+from typing import Annotated
 
 from beanie import init_beanie
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.schemas.agent_create import AgentCreate
+from app.models import Agent, File, Website
 from app.services import agent_service
 
 load_dotenv()
@@ -24,18 +25,28 @@ app.add_middleware(
 async def init_db():
     client = AsyncIOMotorClient(os.getenv("MONGO_URI"))
     await init_beanie(
-        client.get_default_database(),
-        document_models=[
-            "app.models.agent",
-            "app.models.file",
-            "app.models.website",
-        ],
+        client.db_name,
+        document_models=[Agent, File, Website],
     )
+    print("Database initialized")
+
+
+@app.on_event("startup")
+async def startup_db_client():
+    await init_db()
 
 
 @app.post("/agents")
-async def create_agent(agent: AgentCreate):
-    return await agent_service.create_agent(agent)
+async def create_agent(
+    agent_post: Annotated[str, Form()],
+    files: list[UploadFile] = Form(default=[]),
+):
+    return await agent_service.create_agent(agent_post, files)
+
+
+@app.get("/agents")
+async def get_all_agents():
+    return await agent_service.get_all_agents()
 
 
 @app.get("/agents/{agent_id}")
