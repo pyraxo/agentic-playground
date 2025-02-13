@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.models import Agent, File, Website
+from app.schemas.message import Message
 from app.services import agent_service
 
 load_dotenv()
@@ -70,5 +71,5 @@ async def update_agent_files(agent_id: str, file_paths: list[str]):
 
 
 @app.post("/agents/{agent_id}/queries")
-async def send_message(agent_id: str, message: str):
-    return {"message": "Hello World"}
+async def send_message(agent_id: str, message: Message):
+    return await agent_service.send_message(agent_id, message)

@@ -1,7 +1,6 @@
 import os
 from typing import Annotated
 
-from langchain.agents import load_tools
 from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
 from langchain_community.tools.pubmed.tool import PubmedQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
@@ -16,13 +15,13 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 
-arxiv_tool = load_tools(["arxiv"])
+# arxiv_tool = load_tools(["arxiv"])
 pubmed_tool = PubmedQueryRun()
 wikipedia_tool = WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper())
 duckduckgo_tool = DuckDuckGoSearchRun()
 llm = ChatOpenAI(
     model="gpt-4o-mini", temperature=0, api_key=os.getenv("OPENAI_API_KEY")
-).bind_tools([arxiv_tool, pubmed_tool, wikipedia_tool, duckduckgo_tool])
+).bind_tools([pubmed_tool, wikipedia_tool, duckduckgo_tool])
 
 
 workflow = StateGraph(State)
@@ -34,7 +33,7 @@ def agent(state: State) -> State:
 
 workflow.add_node("agent", agent)
 
-tool_node = ToolNode([arxiv_tool, pubmed_tool, wikipedia_tool, duckduckgo_tool])
+tool_node = ToolNode([pubmed_tool, wikipedia_tool, duckduckgo_tool])
 workflow.add_node("tools", tool_node)
 
 workflow.add_conditional_edges("agent", tools_condition, ["tools", END])
