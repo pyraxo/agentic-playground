@@ -95,7 +95,7 @@ async def update_agent_files(agent_name: str, files: list[str]) -> None:
     agent.files.extend(files)
 
 
-async def send_message(agent_id: str, message: Message) -> None:
+async def send_message(agent_name: str, message: Message) -> None:
     """Send a message to an agent.
 
     Args:
