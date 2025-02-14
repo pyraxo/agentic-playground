@@ -26,7 +26,7 @@ app.add_middleware(
 async def init_db():
     client = AsyncIOMotorClient(os.getenv("MONGO_URI"))
     await init_beanie(
-        client.db_name,
+        client["agent_workflow"],
         document_models=[Agent, File, Website],
     )
     print("Database initialized")
