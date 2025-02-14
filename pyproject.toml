@@ -13,8 +13,11 @@ dependencies = [
     "langchain-openai>=0.3.5",
     "langgraph>=0.2.71",
     "langsmith>=0.3.8",
+    "nltk==3.8.1",
+    "poppler-utils>=0.1.0",
     "python-dotenv>=1.0.1",
     "python-multipart>=0.0.20",
+    "unstructured[docx,pdf,pptx]>=0.14.8",
     "wikipedia>=1.4.0",
     "xmltodict>=0.14.2",
 ]
