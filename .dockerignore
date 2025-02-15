@@ -1,0 +1,17 @@
+*.pyc
+*.pyo
+__pycache__/
+.venv/
+venv/
+*.egg-info/
+.idea/
+.vscode/
+*.swp
+*.swo
+tmp/
+.DS_Store
+.env
+Dockerfile
+.dockerignore
+*.log
+.python-version
