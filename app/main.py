@@ -3,7 +3,8 @@ from typing import Annotated
 
 from beanie import init_beanie
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, UploadFile
+from fastapi import Body, FastAPI, Form
+from fastapi import File as FastAPIFile
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -40,7 +41,7 @@ async def startup_db_client():
 @app.post("/agents")
 async def create_agent(
     agent_post: Annotated[str, Form()],
-    files: list[UploadFile] = Form(default=[]),
+    files: Annotated[list[bytes], FastAPIFile()],
 ):
     return await agent_service.create_agent(agent_post, files)
 
@@ -61,13 +62,16 @@ async def delete_agent(agent_id: str):
 
 
 @app.put("/agents/{agent_id}/websites")
-async def update_agent_websites(agent_id: str, website_paths: list[str]):
-    return {"message": "Hello World"}
+async def update_agent_websites(agent_id: str, websites: list[str] = Body(...)):
+    return await agent_service.update_agent_websites(agent_id, websites)
 
 
 @app.put("/agents/{agent_id}/files")
-async def update_agent_files(agent_id: str, file_paths: list[str]):
-    return {"message": "Hello World"}
+async def update_agent_files(
+    agent_id: str,
+    files: Annotated[list[bytes], FastAPIFile()],
+):
+    return await agent_service.update_agent_files(agent_id, files)
 
 
 @app.post("/agents/{agent_id}/queries")
