@@ -1,6 +1,7 @@
 import os
 from typing import Annotated
 
+from dotenv import load_dotenv
 from langchain_community.tools import DuckDuckGoSearchRun, WikipediaQueryRun
 from langchain_community.tools.pubmed.tool import PubmedQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
@@ -9,6 +10,8 @@ from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from typing_extensions import TypedDict
+
+load_dotenv()
 
 
 class State(TypedDict):
