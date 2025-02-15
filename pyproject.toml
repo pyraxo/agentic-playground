@@ -17,6 +17,7 @@ dependencies = [
     "poppler-utils>=0.1.0",
     "python-dotenv>=1.0.1",
     "python-multipart>=0.0.20",
+    "tiktoken>=0.8.0",
     "unstructured[docx,pdf,pptx]>=0.14.8",
     "wikipedia>=1.4.0",
     "xmltodict>=0.14.2",
