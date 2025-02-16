@@ -31,7 +31,7 @@ Swagger docs can be found at the `/docs` endpoint, e.g. <http://localhost:8000/d
 With [Docker Compose](https://docs.docker.com/compose/install/) installed, you can start the project with:
 
 ```sh
-docker compose up -d
+docker compose up --build
 ```
 
 ## API Reference
