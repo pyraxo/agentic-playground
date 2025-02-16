@@ -24,7 +24,12 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}
     networks:
       - agentic-network
+    volumes:
+      - agentic-db:/data/db
 
 networks:
   agentic-network:
     driver: bridge
+
+volumes:
+  agentic-db:
