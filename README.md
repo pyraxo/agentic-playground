@@ -11,12 +11,16 @@ uv venv
 source .venv/bin/activate
 ```
 
-2. Copy `.env.example` into `.env` and fill in `OPENAI_API_KEY` and `MONGO_URI`:
+2. Copy `.env.example` into `.env` and fill in the required environment variables:
 
 ```sh
 cp .env.example .env
 nano .env
 ```
+
+- `OPENAI_API_KEY`: Your OpenAI API key (found [here](https://platform.openai.com/api-keys))
+- `MONGO_URI`: MongoDB connection string (e.g., `mongodb://localhost:27017`)
+- `MONGO_DB_NAME`: Database name (default: `agent_workflow`)
 
 3. Run the server for development:
 
@@ -46,16 +50,35 @@ docker compose up --build
 - `PUT /agents/{agent_id}/websites` - Add website content to agent's knowledge base
 - `PUT /agents/{agent_id}/files` - Add file content to agent's knowledge base
 
-### Implementation changes
+### Design Implementation
 
-1. Added endpoint to view all agents (not in OpenAPI spec)
+1. Added endpoint to view all agents (not in spec)
 
 2. Agent creation (`POST /agents`)
 
    - Instead of using a JSON string for `agent_post`, the `name` field is a required Form during agent creation
-   - Returns full Agent object instead of object with string properties
+   - Returns ID of agent document
 
 3. Knowledge base
 
-   - Uses a SHA256 hashing to prevent duplicate file processing
+   - Uses a SHA256 hashing to prevent duplicate file processing. The files are stored as ID references in `agent.files`. If the file has been uploaded before, the previous copy's ID will be appended to the agent's file list.
+   - Similarly, websites are cleaned with `courlan` and the URLs stored in `File.name` to prevent saving duplicate links.
    - Adds a `created_at` field to track when a file was added
+
+4. `File` and `Website` are defined within the same model but they should rightfully be stored separately. The website scraping (performed with `unstructured`) logic is currently rudimentary and should be further expanded on in the future, such as by identifying `NarrativeText` type elements and removing large whitespaces.
+
+### Project Structure
+
+```
+.
+├── app/                   # Main application directory
+│   ├── agents/            # Agent implementations and behaviors
+│   ├── api/               # FastAPI route definitions
+│   ├── models/            # Database models (Beanie/MongoDB)
+│   ├── schemas/           # Pydantic schemas for request/response
+│   ├── services/          # Business logic and service layer
+│   └── main.py            # FastAPI application entry point
+├── docs/                  # Project documentation
+├── tests/                 # Test suite
+└── README.md              # Project documentation
+```
