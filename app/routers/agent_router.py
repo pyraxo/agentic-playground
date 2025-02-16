@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Form, UploadFile, status
+from fastapi import APIRouter, Body, File, Form, UploadFile, status
 
 from app.models import Agent
+from app.schemas.agent_post import AgentPost
 from app.schemas.message import Message
 from app.services import agent_service
 
@@ -11,9 +12,10 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_agent(
-    agent_post: Annotated[str, Form()],
-    files: list[UploadFile] = None,
+    name: Annotated[str, Form()],
+    files: Annotated[list[UploadFile] | None, File()] = None,
 ) -> Agent:
+    agent_post = AgentPost(name=name)
     return await agent_service.create_agent(agent_post, files)
 
 
