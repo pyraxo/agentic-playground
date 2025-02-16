@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.models import Agent, File, Website
+from app.models import Agent, File
 from app.routers import agent_router
 
 load_dotenv()
@@ -27,7 +27,7 @@ async def init_db():
     client = AsyncIOMotorClient(os.getenv("MONGO_URI"))
     await init_beanie(
         client["agent_workflow"],
-        document_models=[Agent, File, Website],
+        document_models=[Agent, File],
     )
     print("Database initialized")
 

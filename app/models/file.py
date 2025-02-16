@@ -8,7 +8,7 @@ class File(Document):
     name: str
     text: str
     tokens: int = 0
-    hash: str
+    hash: str | None = None
     created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:

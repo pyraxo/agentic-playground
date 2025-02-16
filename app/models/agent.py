@@ -5,13 +5,12 @@ from beanie import Document, Link
 from pydantic import Field
 
 from app.models.file import File
-from app.models.website import Website
 
 
 class Agent(Document):
     name: str
     files: List[Link[File]] = []
-    websites: List[Link[Website]] = []
+    messages: List[str] = []
     prompt: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.now)
 
