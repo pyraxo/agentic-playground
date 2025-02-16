@@ -1,5 +1,6 @@
 import io
 
+import docx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -55,7 +56,7 @@ def test_create_get_and_delete_agent(test_client):
 
 
 def test_update_agent_websites(test_client):
-    data = {"name": "WebAgent", "prompt": "Default prompt"}
+    data = {"name": "WebAgent"}
     response = test_client.post("/agents", data=data)
     agent_id = response.json()["id"]
 
@@ -73,7 +74,31 @@ def test_update_agent_websites(test_client):
 
 
 def test_update_agent_files(test_client):
-    data = {"name": "FileAgent", "prompt": "Default prompt"}
+    data = {"name": "FileAgent"}
+    response = test_client.post("/agents", data=data)
+    agent_id = response.json()["id"]
+
+    files = []
+    for filename in ["Resume.pdf", "HowToReadAPaper.png"]:
+        with open(f"tests/docs/{filename}", "rb") as f:
+            file_content = f.read()
+            content_type = (
+                "application/pdf" if filename.endswith(".pdf") else "image/png"
+            )
+            files.append(("files", (filename, io.BytesIO(file_content), content_type)))
+
+    response = test_client.put(f"/agents/{agent_id}/files", files=files)
+    assert response.status_code == 204
+
+    response = test_client.get(f"/agents/{agent_id}")
+    assert response.status_code == 200
+    agent = response.json()
+    assert "files" in agent
+    assert any("Resume.pdf" in f.get("name", "") for f in agent["files"])
+
+
+def test_send_message(test_client):
+    data = {"name": "QueryAgent"}
     response = test_client.post("/agents", data=data)
     agent_id = response.json()["id"]
 
@@ -83,26 +108,36 @@ def test_update_agent_files(test_client):
     response = test_client.put(f"/agents/{agent_id}/files", files=files)
     assert response.status_code == 204
 
-    response = test_client.get(f"/agents/{agent_id}")
-    assert response.status_code == 200
-    agent = response.json()
-    assert "files" in agent
-    assert any("Resume.pdf" in f.get("name", "") for f in agent["files"])
-    test_client.delete(f"/agents/{agent_id}")
-
-
-def test_send_message(test_client):
-    # Create an agent to send a query
-    data = {"name": "QueryAgent", "prompt": "Default prompt"}
-    response = test_client.post("/agents", data=data)
-    agent_id = response.json()["id"]
-
-    # Send a research query message
-    payload = {"message": "What is the capital of France?"}
+    payload = {"message": "Who is Aaron Tua and what is he known for?"}
     response = test_client.post(f"/agents/{agent_id}/queries", json=payload)
-    # Since the LLM and tool integration are active, we expect a 201 response
     assert response.status_code == 201
     result = response.json()
     assert isinstance(result, dict)
     assert "messages" in result
+    test_client.delete(f"/agents/{agent_id}")
+
+
+def test_exceed_token_limit(test_client):
+    data = {"name": "TokenLimitAgent"}
+    response = test_client.post("/agents", data=data)
+    agent_id = response.json()["id"]
+
+    document = docx.Document()
+    document.add_paragraph("Hello world!", style="Heading 1")
+    document.add_paragraph("This is a test document." * 100000, style="Normal")
+    file_content = io.BytesIO()
+    document.save(file_content)
+    file_content.seek(0)
+    files = [
+        (
+            "files",
+            (
+                "overloaded.docx",
+                file_content,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ),
+        )
+    ]
+    response = test_client.put(f"/agents/{agent_id}/files", files=files)
+    assert response.status_code == 422
     test_client.delete(f"/agents/{agent_id}")

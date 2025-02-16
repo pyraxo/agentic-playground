@@ -114,7 +114,7 @@ async def process_batch_websites(agent: Agent, websites: list[str]) -> list[File
     for website in websites:
         website_doc = await file_service.process_website(website)
         if get_total_tokens(agent) + website_doc.tokens > 120000:
-            raise HTTPException(status_code=400, detail="Total tokens limit reached")
+            raise HTTPException(status_code=422, detail="Total tokens limit reached")
         processed_websites.append(website_doc)
     return processed_websites
 
@@ -158,7 +158,7 @@ async def process_batch_files(agent: Agent, files: list[UploadFile]) -> list[Fil
         if file_doc in agent.files:
             continue
         if get_total_tokens(agent) + file_doc.tokens > 120000:
-            raise HTTPException(status_code=400, detail="Total tokens limit reached")
+            raise HTTPException(status_code=422, detail="Total tokens limit reached")
         processed_files.append(file_doc)
     return processed_files
 

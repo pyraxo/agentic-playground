@@ -20,6 +20,7 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "langgraph" },
     { name = "langsmith" },
+    { name = "libmagic" },
     { name = "nltk" },
     { name = "olefile" },
     { name = "poppler-utils" },
@@ -35,6 +36,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "docx" },
     { name = "pytest" },
 ]
 
@@ -49,6 +51,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.3.5" },
     { name = "langgraph", specifier = ">=0.2.71" },
     { name = "langsmith", specifier = ">=0.3.8" },
+    { name = "libmagic", specifier = ">=1.0" },
     { name = "nltk", specifier = "==3.8.1" },
     { name = "olefile", specifier = ">=0.47" },
     { name = "poppler-utils", specifier = ">=0.1.0" },
@@ -63,7 +66,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.3.4" }]
+dev = [
+    { name = "docx", specifier = ">=0.2.4" },
+    { name = "pytest", specifier = ">=8.3.4" },
+]
 
 [[package]]
 name = "aiofiles"
@@ -461,6 +467,16 @@ sdist = { url = "https://files.pythonhosted.org/packages/b5/4a/263763cb2ba3816dd
 wheels = [
     { url = "https://files.pythonhosted.org/packages/68/1b/e0a87d256e40e8c888847551b20a017a6b98139178505dc7ffb96f04e954/dnspython-2.7.0-py3-none-any.whl", hash = "sha256:b4c34b7d10b51bcc3a5071e7b8dee77939f1e878477eeecc965e9835f63c6c86", size = 313632 },
 ]
+
+[[package]]
+name = "docx"
+version = "0.2.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4a/8e/5a01644697b03016de339ef444cfff28367f92984dc74eddaab1ed60eada/docx-0.2.4.tar.gz", hash = "sha256:9d7595eac6e86cda0b7136a2995318d039c1f3eaa368a3300805abbbe5dc8877", size = 54925 }
 
 [[package]]
 name = "duckduckgo-search"
@@ -1188,6 +1204,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/47/9e/c60681be72f03845c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/13/e37962a20f7051b2d6d286c3feb85754f9ea8c4cac302927971e910cc9f6/lazy_model-0.2.0-py3-none-any.whl", hash = "sha256:5a3241775c253e36d9069d236be8378288a93d4fc53805211fd152e04cc9c342", size = 13719 },
 ]
+
+[[package]]
+name = "libmagic"
+version = "1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/86/419ddfc3879b4565a60e0c75b6d19baec48428cbc2f15aca5320b3d136f6/libmagic-1.0.tar.gz", hash = "sha256:649f1ce7fb7c92796badbb812555e4a926351da4f5cdf82e810b5cd371aedf8d", size = 3665 }
 
 [[package]]
 name = "lxml"
