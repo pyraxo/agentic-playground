@@ -19,11 +19,15 @@ dependencies = [
     "poppler-utils>=0.1.0",
     "psutil>=7.0.0",
     "pydantic-settings>=2.7.1",
-    "python-dotenv>=1.0.1",
     "python-multipart>=0.0.20",
     "python-oxmsg>=0.0.2",
     "tiktoken>=0.8.0",
-    "unstructured>=0.14.8",
+    "unstructured[csv,docx,epub,image,md,pdf,pptx,xlsx]>=0.14.8",
     "wikipedia>=1.4.0",
     "xmltodict>=0.14.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
 ]
