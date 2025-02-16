@@ -57,6 +57,5 @@ docker compose up --build
 
 3. Knowledge base
 
-   - Implements a 120k token limit across all files and websites combined
-   - Uses SHA256 hashing to prevent duplicate file processing
-   - Added a `created_at` field to track when a file was added
+   - Uses a SHA256 hashing to prevent duplicate file processing
+   - Adds a `created_at` field to track when a file was added

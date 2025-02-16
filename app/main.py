@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from app.api import agents
 from app.models import Agent, File
-from app.routers import agent_router
 
 load_dotenv()
 app = FastAPI()
@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(agent_router.router)
+app.include_router(agents.router)
 
 
 async def init_db():

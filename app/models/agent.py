@@ -8,6 +8,8 @@ from app.models.file import File
 
 
 class Agent(Document):
+    """Research agent."""
+
     name: str
     files: List[Link[File]] = []
     messages: List[str] = []

@@ -5,6 +5,8 @@ from pydantic import Field
 
 
 class File(Document):
+    """Uploaded file or website."""
+
     name: str
     text: str
     tokens: int = 0
