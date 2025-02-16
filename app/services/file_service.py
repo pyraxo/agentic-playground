@@ -1,21 +1,27 @@
 import io
 
 import tiktoken
+from fastapi import UploadFile
 from unstructured.partition.auto import partition
+
+from app.models import File
 
 encoding = tiktoken.encoding_for_model("gpt-4o-mini")
 
 
-async def upload_file(file_content: bytes):
-    # Convert bytes to a file-like object that has .read()
-    file_obj = io.BytesIO(file_content)
+async def process_file(file: UploadFile):
+    contents = await file.read()
+    elements = partition(file=io.BytesIO(contents))
 
-    elements = partition(file=file_obj)
+    text = "\n".join([str(el) for el in elements])
 
-    print("\n\n".join([str(el) for el in elements]))
+    tokens = tokenize(text)
 
-    return elements
+    file_doc = File(name=file.filename, text=text, tokens=len(tokens))
+    await file_doc.insert()
+
+    return file_doc
 
 
 def tokenize(text: str) -> int:
-    return len(encoding.encode(text))
+    return encoding.encode(text)
