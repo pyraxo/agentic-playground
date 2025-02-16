@@ -1,7 +1,7 @@
 [project]
-name = "aibots-research-agent"
+name = "agentic-playground"
 version = "0.1.0"
-description = "Agentic workflow for research"
+description = "Agentic playground for research"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -14,11 +14,14 @@ dependencies = [
     "langgraph>=0.2.71",
     "langsmith>=0.3.8",
     "nltk==3.8.1",
+    "olefile>=0.47",
     "poppler-utils>=0.1.0",
+    "psutil>=7.0.0",
     "python-dotenv>=1.0.1",
     "python-multipart>=0.0.20",
+    "python-oxmsg>=0.0.2",
     "tiktoken>=0.8.0",
-    "unstructured[docx,pdf,pptx]>=0.14.8",
+    "unstructured>=0.14.8",
     "wikipedia>=1.4.0",
     "xmltodict>=0.14.2",
 ]

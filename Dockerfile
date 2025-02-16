@@ -1,11 +1,9 @@
 # Taken from astral-sh/uv-docker-example
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+FROM downloads.unstructured.io/unstructured-io/unstructured:latest
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
-
-RUN apt update
-
-RUN apt install -y libpoppler-dev
 
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
@@ -20,6 +18,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+EXPOSE 8000
+
 ENTRYPOINT []
 
-CMD ["fastapi", "run", "--host", "0.0.0.0", "app/main.py"]
+CMD ["fastapi", "run", "app/main.py"]
