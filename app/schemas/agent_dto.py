@@ -3,6 +3,9 @@ from pydantic import BaseModel
 
 
 class AgentPost(BaseModel):
+    """Agent post schema."""
+
     name: str | None
-    websites: list[str] | None = None
-    files: list[UploadFile] | None = None
+    prompt: str | None
+    websites: list[str] | None
+    files: list[UploadFile] | None

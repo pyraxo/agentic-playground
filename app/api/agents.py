@@ -13,11 +13,12 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_agent(
     name: Annotated[str | None, Form()] = "ResearchAgent",
+    prompt: Annotated[str | None, Form()] = None,
     websites: Annotated[list[str] | None, Form()] = None,
     files: Annotated[list[UploadFile] | None, File()] = None,
 ) -> dict:
     """Create a new research agent."""
-    agent_post = AgentPost(name=name, websites=websites, files=files)
+    agent_post = AgentPost(name=name, prompt=prompt, websites=websites, files=files)
     return await agent_service.create_agent(agent_post)
 
 

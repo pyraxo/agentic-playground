@@ -1,7 +1,6 @@
 from fastapi import HTTPException, UploadFile
-from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.agents.chatbot import graph
+from app.agents.chatbot import invoke_agent
 from app.models import Agent, File
 from app.schemas.agent_dto import AgentPost
 from app.schemas.message import Message
@@ -26,21 +25,19 @@ async def create_agent(
     """Create a new agent with the given name and files.
 
     Args:
-        agent_post (str): The name of the agent to create.
-        files (list[UploadFile]): Files to add.
-        websites (list[str]): Websites to add.
+        agent_post (AgentPost): Agent post schema.
 
     Returns:
         Agent: The created agent.
     """
-    agent = Agent(name=agent_post.name)
+    agent = Agent(name=agent_post.name, prompt=agent_post.prompt)
     await agent.insert()
 
     if agent_post.files and len(agent_post.files) > 0:
         agent.files.extend(await process_batch_files(agent, agent_post.files))
 
     if agent_post.websites and len(agent_post.websites) > 0:
-        agent.websites.extend(await process_batch_websites(agent, agent_post.websites))
+        agent.files.extend(await process_batch_websites(agent, agent_post.websites))
 
     await agent.save()
     return {"id": str(agent.id)}
@@ -67,8 +64,11 @@ async def get_agent(agent_id: str) -> Agent:
     Returns:
         Agent: The agent.
     """
-    if not (agent := await Agent.get(agent_id, fetch_links=True)):
-        raise HTTPException(status_code=404, detail="Agent not found")
+    try:
+        if not (agent := await Agent.get(agent_id, fetch_links=True)):
+            raise HTTPException(status_code=404, detail="Agent not found")
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail="Error fetching agent") from exc
     return agent
 
 
@@ -174,23 +174,4 @@ async def send_message(agent_id: str, message: Message) -> list[dict]:
         list[dict]: The response from the agent.
     """
     agent = await get_agent(agent_id)
-    knowledge_base = ""
-    if len(agent.files) + len(agent.websites) > 0:
-        files = (
-            "\n\nFiles:\n" + "\n".join([file.text for file in agent.files])
-            if agent.files
-            else ""
-        )
-        websites = (
-            "\n\nWebsites:\n"
-            + "\n".join([website.content for website in agent.websites])
-            if agent.websites
-            else ""
-        )
-        knowledge_base = f"Your knowledge base is the following:{files}{websites}"
-    messages = [
-        SystemMessage(content=f"You are a research assistant. {knowledge_base}"),
-        HumanMessage(content=message.message),
-    ]
-    result = await graph.ainvoke({"messages": messages})
-    return result
+    return await invoke_agent(agent, message)
