@@ -38,6 +38,14 @@ With [Docker Compose](https://docs.docker.com/compose/install/) installed, you c
 docker compose up --build
 ```
 
+## Running tests
+
+You can run the test suite using `pytest` with `--dev` dependencies installed:
+
+```sh
+pytest -v
+```
+
 ## API Reference
 
 ### Endpoints
