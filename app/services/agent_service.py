@@ -4,7 +4,7 @@ from fastapi import HTTPException, UploadFile
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.chatbot import graph
-from app.models import Agent
+from app.models import Agent, File
 from app.schemas.message import Message
 from app.services import file_service
 
@@ -37,13 +37,14 @@ async def create_agent(agent_post: str, files: list[UploadFile]) -> Agent:
     Returns:
         Agent: The created agent.
     """
-    if await Agent.find_one(Agent.name == agent_post):
-        raise HTTPException(status_code=400, detail="Agent already exists")
     agent_details = json.loads(agent_post)
+    if await Agent.find_one(Agent.name == agent_details["name"]):
+        raise HTTPException(status_code=400, detail="Agent already exists")
     agent = Agent(name=agent_details["name"])
     await agent.insert()
-    if files:
-        await update_agent_files(agent.id, files)
+    if files and len(files) > 0:
+        agent.files = await process_batch_files(agent, files)
+    await agent.save()
     return agent
 
 
@@ -53,7 +54,7 @@ async def get_all_agents() -> list[Agent]:
     Returns:
         list[Agent]: A list of all agents.
     """
-    return await Agent.find_all().to_list()
+    return await Agent.find_all(fetch_links=True).to_list()
 
 
 async def get_agent(agent_id: str) -> Agent:
@@ -68,8 +69,7 @@ async def get_agent(agent_id: str) -> Agent:
     Returns:
         Agent: The agent.
     """
-    agent = await Agent.find_one(Agent.name == agent_id)
-    if not agent:
+    if not (agent := await Agent.find_one(Agent.name == agent_id, fetch_links=True)):
         raise HTTPException(status_code=404, detail="Agent not found")
     return agent
 
@@ -114,13 +114,32 @@ async def update_agent_files(agent_id: str, files: list[UploadFile]) -> dict:
     """
     agent = await get_agent(agent_id)
 
+    processed_files = await process_batch_files(agent, files)
+    agent.files.extend(processed_files)
+    await agent.save()
+    return
+
+
+async def process_batch_files(agent: Agent, files: list[UploadFile]) -> list[File]:
+    """Process a batch of files and add them to an agent.
+
+    Args:
+        agent (Agent): The agent to add the files to.
+        files (list[UploadFile]): The files to add.
+
+    Raises:
+        HTTPException: If the total tokens limit is reached.
+
+    Returns:
+        list[File]: The processed files.
+    """
+    processed_files = []
     for file in files:
         file_doc = await file_service.process_file(file)
         if get_total_tokens(agent) + file_doc.tokens > 120000:
             raise HTTPException(status_code=400, detail="Total tokens limit reached")
-        agent.files.append(file_doc)
-    await agent.save()
-    return
+        processed_files.append(file_doc)
+    return processed_files
 
 
 async def send_message(agent_id: str, message: Message) -> list[dict]:
@@ -134,9 +153,23 @@ async def send_message(agent_id: str, message: Message) -> list[dict]:
         list[dict]: The response from the agent.
     """
     agent = await get_agent(agent_id)
+    knowledge_base = ""
+    if len(agent.files) + len(agent.websites) > 0:
+        files = (
+            "\n\nFiles:\n" + "\n".join([file.text for file in agent.files])
+            if agent.files
+            else ""
+        )
+        websites = (
+            "\n\nWebsites:\n"
+            + "\n".join([website.content for website in agent.websites])
+            if agent.websites
+            else ""
+        )
+        knowledge_base = f"Your knowledge base is the following:{files}{websites}"
     messages = [
-        SystemMessage(content="You are a research assistant."),
+        SystemMessage(content=f"You are a research assistant. {knowledge_base}"),
         HumanMessage(content=message.message),
     ]
-    result = await graph.invoke(messages)
+    result = await graph.ainvoke({"messages": messages})
     return result
