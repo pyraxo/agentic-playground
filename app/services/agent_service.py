@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.chatbot import graph
 from app.models import Agent, File
-from app.schemas.agent_post import AgentPost
+from app.schemas.agent_dto import AgentPost
 from app.schemas.message import Message
 from app.services import file_service
 
@@ -22,7 +22,6 @@ def get_total_tokens(agent: Agent) -> int:
 
 async def create_agent(
     agent_post: AgentPost,
-    files: list[UploadFile] | None = None,
 ) -> Agent:
     """Create a new agent with the given name and files.
 
@@ -31,24 +30,20 @@ async def create_agent(
         files (list[UploadFile]): Files to add.
         websites (list[str]): Websites to add.
 
-    Raises:
-        HTTPException: If the agent already exists.
-        HTTPException: If there is an error creating the agent.
-
     Returns:
         Agent: The created agent.
     """
-    if await Agent.find_one(Agent.name == agent_post.name):
-        raise HTTPException(status_code=400, detail="Agent already exists")
-
     agent = Agent(name=agent_post.name)
     await agent.insert()
 
-    if files and len(files) > 0:
-        agent.files.extend(await process_batch_files(agent, files))
+    if agent_post.files and len(agent_post.files) > 0:
+        agent.files.extend(await process_batch_files(agent, agent_post.files))
+
+    if agent_post.websites and len(agent_post.websites) > 0:
+        agent.websites.extend(await process_batch_websites(agent, agent_post.websites))
 
     await agent.save()
-    return agent
+    return {"id": str(agent.id)}
 
 
 async def get_all_agents() -> list[Agent]:
@@ -72,7 +67,7 @@ async def get_agent(agent_id: str) -> Agent:
     Returns:
         Agent: The agent.
     """
-    if not (agent := await Agent.find_one(Agent.name == agent_id, fetch_links=True)):
+    if not (agent := await Agent.get(agent_id, fetch_links=True)):
         raise HTTPException(status_code=404, detail="Agent not found")
     return agent
 
