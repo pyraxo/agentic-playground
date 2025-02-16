@@ -1,13 +1,29 @@
-from fastapi import HTTPException
-from langchain_core.messages import HumanMessage
+import json
+
+from fastapi import HTTPException, UploadFile
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.chatbot import graph
-from app.models.agent import Agent
+from app.models import Agent
 from app.schemas.message import Message
 from app.services import file_service
 
 
-async def create_agent(agent_post: str, files: list[bytes]) -> Agent:
+def get_total_tokens(agent: Agent) -> int:
+    """Get the total tokens of an agent's knowledge base.
+
+    Args:
+        agent (Agent): The agent to get the total tokens of.
+
+    Returns:
+        int: The total tokens of the agent's knowledge base.
+    """
+    file_tokens = sum([file.tokens for file in agent.files])
+    website_tokens = sum([len(website) for website in agent.websites])
+    return file_tokens + website_tokens
+
+
+async def create_agent(agent_post: str, files: list[UploadFile]) -> Agent:
     """Create a new agent with the given name and files.
 
     Args:
@@ -23,15 +39,15 @@ async def create_agent(agent_post: str, files: list[bytes]) -> Agent:
     """
     if await Agent.find_one(Agent.name == agent_post):
         raise HTTPException(status_code=400, detail="Agent already exists")
-    try:
-        agent = Agent(name=agent_post)
-        await agent.insert()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    return {"message": "Agent created successfully"}
+    agent_details = json.loads(agent_post)
+    agent = Agent(name=agent_details["name"])
+    await agent.insert()
+    if files:
+        await update_agent_files(agent.id, files)
+    return agent
 
 
-async def get_all_agents():
+async def get_all_agents() -> list[Agent]:
     """Get all agents.
 
     Returns:
@@ -46,12 +62,16 @@ async def get_agent(agent_id: str) -> Agent:
     Args:
         agent_id (str): The name of the agent to get.
 
+    Raises:
+        HTTPException: If the agent is not found.
+
     Returns:
         Agent: The agent.
     """
-    if not await Agent.find_one(Agent.name == agent_id):
+    agent = await Agent.find_one(Agent.name == agent_id)
+    if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    return await Agent.find_one(Agent.name == agent_id)
+    return agent
 
 
 async def delete_agent(agent_id: str) -> None:
@@ -63,9 +83,8 @@ async def delete_agent(agent_id: str) -> None:
     Returns:
         None.
     """
-    agent = await Agent.find_one(Agent.name == agent_id)
+    agent = await get_agent(agent_id)
     await agent.delete()
-    return agent
 
 
 async def update_agent_websites(agent_id: str, websites: list[str]) -> None:
@@ -83,7 +102,7 @@ async def update_agent_websites(agent_id: str, websites: list[str]) -> None:
     await agent.save()
 
 
-async def update_agent_files(agent_id: str, files: list[bytes]) -> None:
+async def update_agent_files(agent_id: str, files: list[UploadFile]) -> dict:
     """Update the files of an agent.
 
     Args:
@@ -91,17 +110,20 @@ async def update_agent_files(agent_id: str, files: list[bytes]) -> None:
         files (list[bytes]): The files to update.
 
     Returns:
-        None.
+        dict: Status message
     """
     agent = await get_agent(agent_id)
-    for file_content in files:
-        elements = await file_service.upload_file(file_content)
-        print(elements)
-    # await agent.save()
-    return {"message": "Files updated successfully"}
+
+    for file in files:
+        file_doc = await file_service.process_file(file)
+        if get_total_tokens(agent) + file_doc.tokens > 120000:
+            raise HTTPException(status_code=400, detail="Total tokens limit reached")
+        agent.files.append(file_doc)
+    await agent.save()
+    return
 
 
-async def send_message(agent_id: str, message: Message) -> None:
+async def send_message(agent_id: str, message: Message) -> list[dict]:
     """Send a message to an agent.
 
     Args:
@@ -109,7 +131,12 @@ async def send_message(agent_id: str, message: Message) -> None:
         message (Message): The message to send.
 
     Returns:
-        None.
+        list[dict]: The response from the agent.
     """
-    result = await graph.ainvoke({"messages": HumanMessage(content=message.message)})
+    agent = await get_agent(agent_id)
+    messages = [
+        SystemMessage(content="You are a research assistant."),
+        HumanMessage(content=message.message),
+    ]
+    result = await graph.invoke(messages)
     return result
