@@ -1,10 +1,9 @@
-import json
-
 from fastapi import HTTPException, UploadFile
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.agents.chatbot import graph
 from app.models import Agent, File
+from app.schemas.agent_post import AgentPost
 from app.schemas.message import Message
 from app.services import file_service
 
@@ -18,17 +17,19 @@ def get_total_tokens(agent: Agent) -> int:
     Returns:
         int: The total tokens of the agent's knowledge base.
     """
-    file_tokens = sum([file.tokens for file in agent.files])
-    website_tokens = sum([len(website) for website in agent.websites])
-    return file_tokens + website_tokens
+    return sum(file.tokens for file in agent.files)
 
 
-async def create_agent(agent_post: str, files: list[UploadFile]) -> Agent:
+async def create_agent(
+    agent_post: AgentPost,
+    files: list[UploadFile] | None = None,
+) -> Agent:
     """Create a new agent with the given name and files.
 
     Args:
         agent_post (str): The name of the agent to create.
-        files (list[UploadFile]): The files to upload.
+        files (list[UploadFile]): Files to add.
+        websites (list[str]): Websites to add.
 
     Raises:
         HTTPException: If the agent already exists.
@@ -37,13 +38,15 @@ async def create_agent(agent_post: str, files: list[UploadFile]) -> Agent:
     Returns:
         Agent: The created agent.
     """
-    agent_details = json.loads(agent_post)
-    if await Agent.find_one(Agent.name == agent_details["name"]):
+    if await Agent.find_one(Agent.name == agent_post.name):
         raise HTTPException(status_code=400, detail="Agent already exists")
-    agent = Agent(name=agent_details["name"])
+
+    agent = Agent(name=agent_post.name)
     await agent.insert()
+
     if files and len(files) > 0:
-        agent.files = await process_batch_files(agent, files)
+        agent.files.extend(await process_batch_files(agent, files))
+
     await agent.save()
     return agent
 
@@ -98,8 +101,27 @@ async def update_agent_websites(agent_id: str, websites: list[str]) -> None:
         None.
     """
     agent = await get_agent(agent_id)
-    agent.websites.extend(websites)
+    agent.files.extend(await process_batch_websites(agent, websites))
     await agent.save()
+
+
+async def process_batch_websites(agent: Agent, websites: list[str]) -> list[File]:
+    """Process a batch of websites and add them to an agent.
+
+    Args:
+        agent (Agent): The agent to add the websites to.
+        websites (list[str]): The websites to add.
+
+    Returns:
+        list[File]: The processed websites.
+    """
+    processed_websites = []
+    for website in websites:
+        website_doc = await file_service.process_website(website)
+        if get_total_tokens(agent) + website_doc.tokens > 120000:
+            raise HTTPException(status_code=400, detail="Total tokens limit reached")
+        processed_websites.append(website_doc)
+    return processed_websites
 
 
 async def update_agent_files(agent_id: str, files: list[UploadFile]) -> dict:
@@ -136,6 +158,10 @@ async def process_batch_files(agent: Agent, files: list[UploadFile]) -> list[Fil
     processed_files = []
     for file in files:
         file_doc = await file_service.process_file(file)
+        if file_doc in processed_files:
+            continue
+        if file_doc in agent.files:
+            continue
         if get_total_tokens(agent) + file_doc.tokens > 120000:
             raise HTTPException(status_code=400, detail="Total tokens limit reached")
         processed_files.append(file_doc)
