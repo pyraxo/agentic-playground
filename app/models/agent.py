@@ -1,18 +1,20 @@
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
-from beanie import Document
+from beanie import Document, Link
 from pydantic import Field
 
 from app.models.file import File
 from app.models.website import Website
-from app.schemas.message import Message
 
 
 class Agent(Document):
-    name: str = Field(description="Name of the agent")
-    files: List[File] = []
-    websites: List[Website] = []
-    messages: List[Message] = []
+    name: str
+    files: List[Link[File]] = []
+    websites: List[Link[Website]] = []
+    prompt: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "agents"
+        indexes = ["name"]
