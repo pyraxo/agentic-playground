@@ -1,10 +1,4 @@
-# Software Engineer Take-Home Assignment: Research Agent
-
-## Division / Role
-
-Platforms (Content, Insights & Policy) / Tech - Software Engineer: AIBots
-
-## Assignment Overview
+# Agentic Backend
 
 Create an MVP backend application demonstrating Agentic Workflows capabilities.
 
@@ -12,13 +6,8 @@ Create an MVP backend application demonstrating Agentic Workflows capabilities.
 
 ### General Requirements
 
-1. Complete both main and bonus assignment
-2. Submission deadline: 1-2 weeks
-3. Use Git for version control with atomic commits
-4. Share solution via Git repository
-5. Provide README.md with build and run instructions
-6. Demonstrate good engineering practices (e.g., TDD)
-7. Reach out for any clarifications needed
+1. Use Git for version control with atomic commits
+2. Demonstrate good engineering practices (e.g., TDD)
 
 ### Technical Stack Requirements
 
@@ -74,10 +63,9 @@ Create a backend application managing a Research Agent that:
 ### API Documentation
 
 - OpenAPI documentation provided separately
-- View using editor.swagger.io
 - Document any design deviations in README.md
 
-## Bonus Assignment: Personalization Features
+## Personalization Features
 
 ### Text Extraction Capabilities
 

@@ -1,4 +1,4 @@
-# Agentic Workflow
+# Agentic Playground
 
 ## Installation
 
