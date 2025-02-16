@@ -24,7 +24,19 @@ nano .env
 - `MONGO_URI`: MongoDB connection string (e.g., `mongodb://localhost:27017`)
 - `MONGO_DB_NAME`: Database name (default: `agent_workflow`)
 
-3. Run the server for development:
+3. [Unstructured](https://docs.unstructured.io/open-source/installation/full-installation) has many required dependencies to get OCR and document extraction working.
+
+- `poppler` (for PDFs):
+
+```sh
+choco install poppler         # Windows
+brew install poppler          # macOS
+apt install -y poppler-utils
+```
+
+- `libmagic`, `libreoffice`, `pandoc`, `tesseract` are the other required libraries, and installing the Python wrappers may or may not suffice. If all else fails, use the Docker installation.
+
+4. Run the server for development:
 
 ```sh
 uv run fastapi dev
@@ -66,7 +78,7 @@ docker compose up --build
 
 2. Agent creation (`POST /agents`)
 
-   - Instead of using a JSON string for `agent_post`, the `name` field is a required Form during agent creation
+   - Instead of supplying an object/string in `agent_post`, the request form can be supplied with `name`, `prompt` (both `str`), `files` (`list[UploadFile]`) and `websites` (`list[str]`). They are not required. See the Swagger docs for more info
    - Returns ID of agent document
 
 3. Knowledge base
@@ -74,8 +86,6 @@ docker compose up --build
    - Uses a SHA256 hashing to prevent duplicate file processing. The files are stored as ID references in `agent.files`. If the file has been uploaded before, the previous copy's ID will be appended to the agent's file list.
    - Similarly, websites are cleaned with `courlan` and the URLs stored in `File.name` to prevent saving duplicate links.
    - Adds a `created_at` field to track when a file was added
-
-4. `File` and `Website` are defined within the same model but they should rightfully be stored separately. The website scraping (performed with `unstructured`) logic is currently rudimentary and should be further expanded on in the future, such as by identifying `NarrativeText` type elements and removing large whitespaces.
 
 ### Project Structure
 
@@ -92,3 +102,11 @@ docker compose up --build
 ├── tests/                 # Test suite
 └── README.md              # Project documentation
 ```
+
+### Further improvements
+
+1. `File` and `Website` are defined within the same model but they should be stored separately. The website scraping logic is currently rudimentary and should be further expanded on in the future, such as by only using `NarrativeText` type elements or removing large whitespaces.
+
+2. OCR and text extraction are supported by `unstructured` but can be tweaked further with individual logic per file type.
+
+3. While uploading files/websites, if the total number of tokens of an agent's knowledge base exceeds 120k, an error is raised. GPT-4o-mini's max input context window is 128k, so the 8k difference is reasonable. As we can supply the agents custom prompts that may exceed 8k, the custom prompt length should be taken into account as well.
