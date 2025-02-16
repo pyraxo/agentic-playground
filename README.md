@@ -52,6 +52,8 @@ pytest -v
 
 Swagger docs can be found at the `/docs` endpoint, e.g. <http://localhost:8000/docs>.
 
+You can also use the [Postman collection](./docs/Agents.postman_collection.json).
+
 ## Docker installation
 
 With [Docker Compose](https://docs.docker.com/compose/install/) installed, you can start the project with:

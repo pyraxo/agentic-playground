@@ -1,0 +1,171 @@
+{
+  "info": {
+    "_postman_id": "00e5b263-7a29-4d5b-9025-d89abcd2ea5d",
+    "name": "Agents",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "6661311"
+  },
+  "item": [
+    {
+      "name": "Get all agents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "localhost:8000/agents",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get specific agent",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "localhost:8000/agents/{{Agent ID}}",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents", "{{Agent ID}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete specific agent",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "localhost:8000/agents/{{Agent ID}}",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents", "{{Agent ID}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create new agent",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "websites",
+              "value": "[\"https://docs.unstructured.io/open-source/core-functionality/partitioning\"]",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "prompt",
+              "value": "",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "files",
+              "type": "file",
+              "src": [],
+              "disabled": true
+            }
+          ]
+        },
+        "url": {
+          "raw": "localhost:8000/agents",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload file",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "localhost:8000/agents/{{Agent ID}}/files",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents", "{{Agent ID}}", "files"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload website",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "[\"https://fastapi.tiangolo.com/tutorial/request-forms-and-files/\"]",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "localhost:8000/agents/{{Agent ID}}/websites",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents", "{{Agent ID}}", "websites"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Send a query",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"message\": \"What is the recent research on human-AI interaction?\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "localhost:8000/agents/{{Agent ID}}/queries",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["agents", "{{Agent ID}}", "queries"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "Agent ID",
+      "value": "agent_id"
+    }
+  ]
+}
