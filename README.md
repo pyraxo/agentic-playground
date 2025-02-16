@@ -2,7 +2,9 @@
 
 ## Local installation
 
-Ensure you have [uv](https://docs.astral.sh/uv/) and Python 3.10+ installed. The `.python-version` file tells `uv` which Python version to install and use when running this project.
+Ensure you have [uv](https://docs.astral.sh/uv/) and Python 3.11 installed. The `.python-version` file tells `uv` which Python version to install and use when running this project.
+
+Later Python versions cause `unstructured-inference` to throw errors (tested on 3.13).
 
 1. Create a virtual environment and activate it:
 
@@ -28,6 +30,14 @@ nano .env
 uv run fastapi dev
 ```
 
+### Running tests
+
+You can run the test suite using `pytest` with `--dev` dependencies installed:
+
+```sh
+pytest -v
+```
+
 Swagger docs can be found at the `/docs` endpoint, e.g. <http://localhost:8000/docs>.
 
 ## Docker installation
@@ -36,14 +46,6 @@ With [Docker Compose](https://docs.docker.com/compose/install/) installed, you c
 
 ```sh
 docker compose up --build
-```
-
-## Running tests
-
-You can run the test suite using `pytest` with `--dev` dependencies installed:
-
-```sh
-pytest -v
 ```
 
 ## API Reference
